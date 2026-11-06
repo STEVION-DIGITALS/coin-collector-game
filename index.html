@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Coin Collector Game</title>
+
+    <style>
+        body {
+            background: #14532d;
+            color: white;
+            text-align: center;
+            font-family: Arial;
+        }
+
+        #game {
+            width: 500px;
+            height: 350px;
+            background: white;
+            margin: auto;
+            border: 4px solid #22c55e;
+            position: relative;
+        }
+
+        #player {
+            width: 35px;
+            height: 35px;
+            background: #16a34a;
+            position: absolute;
+            left: 20px;
+            bottom: 20px;
+        }
+        #coin {
+            width: 25px;
+            height: 25px;
+            background: gold;
+            border: 3px solid #ca8a04;
+            border-radius: 50%;
+            position: absolute;
+            top: 50px;
+            left: 230px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>My Coin Collector Game</h1>
+    <p>Welcome to my game!</p>
+    <p id="score">Score: 0</p>
+    <p id="highscore">High Score: 0</p>
+    <p id="timer">Time: 60</p>
+    <button id="restart">Play Again</button>
+    <div id="game">
+    <div id="player"></div>
+    <div id="coin"></div>
+</div>
+
+<script>
+const player = document.getElementById("player");
+const coin = document.getElementById("coin");
+const scoreDisplay = document.getElementById("score");
+const highScoreDisplay = document.getElementById("highscore");
+const timerDisplay = document.getElementById("timer");
+const restartButton = document.getElementById("restart");
+
+let x = 20;
+let y = 20;
+let score = 0;
+let timeLeft = 60;
+let highScore = Number(localStorage.getItem("coinHighScore")) || 0;
+
+let gameStarted = false;
+let gameOver = false;
+let countdown = null;
+
+highScoreDisplay.textContent = "High Score: " + highScore;
+
+// Start the timer
+function startTimer() {
+    if (gameStarted) return;
+
+    gameStarted = true;
+
+    countdown = setInterval(function() {
+        timeLeft--;
+
+        timerDisplay.textContent = "Time: " + timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            gameOver = true;
+            timerDisplay.textContent = "TIME'S UP!";
+        }
+    }, 1000);
+}
+
+// Move player
+document.addEventListener("keydown", function(event) {
+
+    if (gameOver) return;
+
+    let moved = false;
+
+    if (event.key === "ArrowRight") {
+        x += 10;
+        moved = true;
+    }
+
+    if (event.key === "ArrowLeft") {
+        x -= 10;
+        moved = true;
+    }
+
+    if (event.key === "ArrowUp") {
+        y += 10;
+        moved = true;
+    }
+
+    if (event.key === "ArrowDown") {
+        y -= 10;
+        moved = true;
+    }
+
+    if (!moved) return;
+
+    event.preventDefault();
+
+    // Start timer on first movement
+    startTimer();
+
+    x = Math.max(0, Math.min(465, x));
+    y = Math.max(0, Math.min(315, y));
+
+    player.style.left = x + "px";
+    player.style.bottom = y + "px";
+
+    // Check coin collision
+    const playerRect = player.getBoundingClientRect();
+    const coinRect = coin.getBoundingClientRect();
+
+    if (
+        playerRect.left < coinRect.right &&
+        playerRect.right > coinRect.left &&
+        playerRect.top < coinRect.bottom &&
+        playerRect.bottom > coinRect.top
+    ) {
+        score++;
+
+        scoreDisplay.textContent = "Score: " + score;
+
+        // Update high score
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("coinHighScore", highScore);
+            highScoreDisplay.textContent = "High Score: " + highScore;
+        }
+
+        // Give player another coin
+        coin.style.left = Math.floor(Math.random() * 460) + "px";
+        coin.style.top = Math.floor(Math.random() * 310) + "px";
+    }
+});
+
+// Restart game
+restartButton.addEventListener("click", function() {
+
+    clearInterval(countdown);
+
+    x = 20;
+    y = 20;
+    score = 0;
+    timeLeft = 60;
+
+    gameStarted = false;
+    gameOver = false;
+
+    player.style.left = x + "px";
+    player.style.bottom = y + "px";
+
+    coin.style.left = "230px";
+    coin.style.top = "50px";
+
+    scoreDisplay.textContent = "Score: 0";
+    timerDisplay.textContent = "Time: 60";
+
+    countdown = null;
+});
+</script>
+</body>
+</html>
